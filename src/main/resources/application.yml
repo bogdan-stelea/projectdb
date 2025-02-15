@@ -1,0 +1,26 @@
+spring:
+  profiles:
+    active: dev
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:postgresql://localhost:5432/student_admin_db
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect 
+
+encryption:
+  key:
+    master: ${MASTER_KEY}
+    salt: ${KEY_SALT}
+    encrypted: ${ENCRYPTED_KEY}
