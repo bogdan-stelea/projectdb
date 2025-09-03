@@ -2,9 +2,8 @@ package com.bogdan.projectdb.service.impl;
 
 import com.bogdan.projectdb.model.Instructor;
 import com.bogdan.projectdb.repository.InstructorRepository;
-import com.bogdan.projectdb.audit.AuditService;
 import com.bogdan.projectdb.service.InstructorService;
-import jakarta.persistence.EntityNotFoundException;
+import com.bogdan.projectdb.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -12,16 +11,14 @@ import java.util.List;
 @Service
 public class InstructorServiceImpl implements InstructorService {
     private final InstructorRepository instructorRepository;
-    private final AuditService auditService;
 
-    public InstructorServiceImpl(InstructorRepository instructorRepository, AuditService auditService) {
+    public InstructorServiceImpl(InstructorRepository instructorRepository) {
         this.instructorRepository = instructorRepository;
-        this.auditService = auditService;
     }
 
     public Instructor findInstructorById(Integer id) {
         return instructorRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Instructor not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor", "id", id));
     }
 
     public List<Instructor> getAllInstructors() {
@@ -37,22 +34,13 @@ public class InstructorServiceImpl implements InstructorService {
 
     @Transactional
     public Instructor createInstructor(Instructor instructor) {
-        Instructor savedInstructor = instructorRepository.save(instructor);
-        auditService.logActivity(
-            "Instructor",
-            savedInstructor.getId(),
-            "CREATE",
-            null,
-            savedInstructor,
-            "system"
-        );
-        return savedInstructor;
+        return instructorRepository.save(instructor);
     }
 
     @Transactional
     public Instructor updateInstructor(Integer id, Instructor instructor) {
         Instructor existingInstructor = instructorRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Instructor not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Instructor", "id", id));
         
         Instructor oldValue = new Instructor();
         
@@ -62,33 +50,14 @@ public class InstructorServiceImpl implements InstructorService {
         existingInstructor.setPhoneNumber(instructor.getPhoneNumber());
         existingInstructor.setDepartment(instructor.getDepartment());
         
-        Instructor updatedInstructor = instructorRepository.save(existingInstructor);
-        
-        auditService.logActivity(
-            "Instructor",
-            updatedInstructor.getId(),
-            "UPDATE",
-            oldValue,
-            updatedInstructor,
-            "system"
-        );
-        
-        return updatedInstructor;
+        return instructorRepository.save(existingInstructor);
     }
 
     @Transactional
     public void deleteInstructor(Integer id) {
-        Instructor instructor = instructorRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Instructor not found"));
-            
-        auditService.logActivity(
-            "Instructor",
-            id,
-            "DELETE",
-            instructor,
-            null,
-            "system"
-        );
+        if (!instructorRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Instructor", "id", id);
+        }
         
         instructorRepository.deleteById(id);
     }

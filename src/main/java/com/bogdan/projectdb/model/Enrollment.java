@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
@@ -24,11 +25,13 @@ public class Enrollment {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "student_id", insertable = false, updatable = false)
+    @JoinColumn(name = "student_id")
+    @JsonIgnoreProperties({"enrollments", "email", "phoneNumber", "address"})
     private Student student;
 
     @ManyToOne
-    @JoinColumn(name = "course_id", insertable = false, updatable = false)
+    @JoinColumn(name = "course_id")
+    @JsonIgnoreProperties({"enrollments", "instructor"})
     private Course course;
 
     @Column(name = "enrollment_date")

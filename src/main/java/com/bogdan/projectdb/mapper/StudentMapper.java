@@ -18,10 +18,10 @@ public class StudentMapper {
         StudentDto dto = new StudentDto();
         dto.setFirstName(student.getFirstName());
         dto.setLastName(student.getLastName());
-        dto.setEmail(student.getEmail());
-        dto.setPhoneNumber(student.getPhoneNumber());
+        dto.setEmail(student.getMaskedEmail());
+        dto.setPhoneNumber(student.getMaskedPhoneNumber());
         dto.setDateOfBirth(student.getDateOfBirth());
-        dto.setAddress(student.getAddress());
+        dto.setAddress(student.getMaskedAddress());
         return dto;
     }
 

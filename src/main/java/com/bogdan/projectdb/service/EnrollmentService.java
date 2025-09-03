@@ -5,7 +5,6 @@ import com.bogdan.projectdb.model.Enrollment;
 import java.util.List;
 import java.util.Optional;
 import com.bogdan.projectdb.repository.EnrollmentRepository;
-import com.bogdan.projectdb.audit.AuditService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

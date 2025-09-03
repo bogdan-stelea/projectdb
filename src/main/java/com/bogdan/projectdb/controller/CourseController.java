@@ -1,5 +1,7 @@
 package com.bogdan.projectdb.controller;
 
+import com.bogdan.projectdb.dto.CourseDto;
+import com.bogdan.projectdb.mapper.CourseMapper;
 import com.bogdan.projectdb.model.Course;
 import com.bogdan.projectdb.security.SqlSecurityConfig;
 import com.bogdan.projectdb.service.CourseService;
@@ -19,35 +21,42 @@ public class CourseController {
     private static final Pattern COURSE_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9\\s-]{3,100}$");
     
     private final CourseService courseService;
+    private final CourseMapper courseMapper;
     private final SqlSecurityConfig sqlSecurityConfig;
 
-    public CourseController(CourseService courseService, SqlSecurityConfig sqlSecurityConfig) {
+    public CourseController(CourseService courseService, CourseMapper courseMapper, SqlSecurityConfig sqlSecurityConfig) {
         this.courseService = courseService;
+        this.courseMapper = courseMapper;
         this.sqlSecurityConfig = sqlSecurityConfig;
     }
 
     @PostMapping
-    public ResponseEntity<Course> createCourse(@Valid @RequestBody Course course) {
-        validateCourse(course);
-        return ResponseEntity.ok(courseService.createCourse(course));
+    public ResponseEntity<CourseDto> createCourse(@Valid @RequestBody CourseDto courseDto) {
+        validateCourseDto(courseDto);
+        Course course = courseMapper.toEntity(courseDto);
+        Course savedCourse = courseService.createCourse(course);
+        return ResponseEntity.ok(courseMapper.toDto(savedCourse));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Course> getCourse(@PathVariable Integer id) {
-        return ResponseEntity.ok(courseService.getCourseById(id));
+    public ResponseEntity<CourseDto> getCourse(@PathVariable Integer id) {
+        Course course = courseService.getCourseById(id);
+        return ResponseEntity.ok(courseMapper.toDto(course));
     }
 
     @GetMapping
     public ResponseEntity<?> getAllCourses() {
-        return ResponseEntity.ok(courseService.getAllCourses());
+        return ResponseEntity.ok(courseMapper.toDtoList(courseService.getAllCourses()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Course> updateCourse(
+    public ResponseEntity<CourseDto> updateCourse(
             @PathVariable Integer id, 
-            @Valid @RequestBody Course course) {
-        validateCourse(course);
-        return ResponseEntity.ok(courseService.updateCourse(id, course));
+            @Valid @RequestBody CourseDto courseDto) {
+        validateCourseDto(courseDto);
+        Course course = courseMapper.toEntity(courseDto);
+        Course updatedCourse = courseService.updateCourse(id, course);
+        return ResponseEntity.ok(courseMapper.toDto(updatedCourse));
     }
 
     @DeleteMapping("/{id}")
@@ -69,26 +78,26 @@ public class CourseController {
             }
         }
         
-        return ResponseEntity.ok(courseService.searchCourses(query));
+        return ResponseEntity.ok(courseMapper.toDtoList(courseService.searchCourses(query)));
     }
 
-    private void validateCourse(Course course) {
-        if (!sqlSecurityConfig.isSqlInjectionSafe(course.getCourseCode()) || 
-            !COURSE_CODE_PATTERN.matcher(course.getCourseCode()).matches()) {
+    private void validateCourseDto(CourseDto courseDto) {
+        if (!sqlSecurityConfig.isSqlInjectionSafe(courseDto.getCourseCode()) || 
+            !COURSE_CODE_PATTERN.matcher(courseDto.getCourseCode()).matches()) {
             throw new IllegalArgumentException("Invalid course code format");
         }
 
-        if (!sqlSecurityConfig.isSqlInjectionSafe(course.getCourseName()) || 
-            !COURSE_NAME_PATTERN.matcher(course.getCourseName()).matches()) {
+        if (!sqlSecurityConfig.isSqlInjectionSafe(courseDto.getCourseName()) || 
+            !COURSE_NAME_PATTERN.matcher(courseDto.getCourseName()).matches()) {
             throw new IllegalArgumentException("Invalid course name format");
         }
 
-        if (course.getCredits() < 0 || course.getCredits() > 6) {
+        if (courseDto.getCredits() < 0 || courseDto.getCredits() > 6) {
             throw new IllegalArgumentException("Credits must be between 0 and 6");
         }
 
-        if (course.getDescription() != null && 
-            !sqlSecurityConfig.isSqlInjectionSafe(course.getDescription())) {
+        if (courseDto.getDescription() != null && 
+            !sqlSecurityConfig.isSqlInjectionSafe(courseDto.getDescription())) {
             throw new IllegalArgumentException("Invalid description format");
         }
     }

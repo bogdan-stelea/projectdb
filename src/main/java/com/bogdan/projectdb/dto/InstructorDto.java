@@ -26,7 +26,7 @@ public class InstructorDto {
     private String email;
 
     @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^(\\+\\d{2,3}\\d{9}|07\\d{8})$", message = "Invalid phone number format")
+    @Pattern(regexp = "^[0-9+\\-\\s\\(\\)]{7,20}$", message = "Invalid phone number format")
     private String phoneNumber;
 
     @NotBlank(message = "Department is required")

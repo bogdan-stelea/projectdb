@@ -18,7 +18,7 @@ public class InstructorController {
 
     private static final Pattern NAME_PATTERN = Pattern.compile("^[a-zA-Z\\s-]{2,50}$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^(\\+\\d{2,3}\\d{9}|07\\d{8})$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+\\-\\s\\(\\)]{7,20}$");
     private static final Pattern DEPARTMENT_PATTERN = Pattern.compile("^[a-zA-Z\\s&-]{2,100}$");
 
     private final InstructorService instructorService;
@@ -97,7 +97,7 @@ public class InstructorController {
 
         if (!sqlSecurityConfig.isSqlInjectionSafe(instructorDto.getPhoneNumber()) ||
             !PHONE_PATTERN.matcher(instructorDto.getPhoneNumber()).matches()) {
-            throw new IllegalArgumentException("Invalid email format");
+            throw new IllegalArgumentException("Invalid phone number format");
         }
 
         if (!sqlSecurityConfig.isSqlInjectionSafe(instructorDto.getDepartment()) ||

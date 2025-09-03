@@ -9,7 +9,6 @@ import com.bogdan.projectdb.repository.CourseRepository;
 import com.bogdan.projectdb.repository.EnrollmentRepository;
 import com.bogdan.projectdb.repository.StudentRepository;
 import com.bogdan.projectdb.service.EnrollmentService;
-import com.bogdan.projectdb.audit.AuditService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,12 +24,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final StudentRepository studentRepository;
     private final CourseRepository courseRepository;
-    private final AuditService auditService;
 
 
     public Enrollment findEnrollmentById(Integer id) {
         return enrollmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Enrollment not found"));
     }
 
     public List<EnrollmentDto> getStudentEnrollments(Integer studentId) {
@@ -78,14 +76,6 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         }
 
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
-        auditService.logActivity(
-            "Enrollment",
-            savedEnrollment.getId(),
-            "CREATE",
-            null,
-            savedEnrollment,
-            "system"
-        );
         return convertToDto(savedEnrollment);
     }
 
@@ -100,35 +90,18 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         
         enrollment.setGrade(grade);
         Enrollment updatedEnrollment = enrollmentRepository.save(enrollment);
-        auditService.logActivity(
-            "Enrollment",
-            updatedEnrollment.getId(),
-            "UPDATE",
-            enrollment,
-            updatedEnrollment,
-            "system"
-        );
         return convertToDto(updatedEnrollment);
     }
 
     @Transactional
     public Enrollment createEnrollment(Enrollment enrollment) {
-        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
-        auditService.logActivity(
-            "Enrollment",
-            savedEnrollment.getId(),
-            "CREATE",
-            null,
-            savedEnrollment,
-            "system"
-        );
-        return savedEnrollment;
+        return enrollmentRepository.save(enrollment);
     }
 
     @Transactional
     public Enrollment updateEnrollment(Integer id, Enrollment enrollment) {
         Enrollment existingEnrollment = enrollmentRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Enrollment not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Enrollment not found"));
         
         Enrollment oldValue = new Enrollment();
         
@@ -138,18 +111,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         existingEnrollment.setGrade(enrollment.getGrade());
         existingEnrollment.setStatus(enrollment.getStatus());
         
-        Enrollment updatedEnrollment = enrollmentRepository.save(existingEnrollment);
-        
-        auditService.logActivity(
-            "Enrollment",
-            updatedEnrollment.getId(),
-            "UPDATE",
-            oldValue,
-            updatedEnrollment,
-            "system"
-        );
-        
-        return updatedEnrollment;
+        return enrollmentRepository.save(existingEnrollment);
     }
 
     @Transactional
@@ -158,29 +120,13 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Enrollment not found"));
         enrollment.setStatus(EnrollmentStatus.DROPPED.toString());
         enrollmentRepository.save(enrollment);
-        auditService.logActivity(
-                "Enrollment",
-                enrollmentId,
-                "DELETE",
-                enrollment,
-                null,
-                "system"
-        );
     }
 
     @Transactional
     public void deleteEnrollment(Integer id) {
-        Enrollment enrollment = enrollmentRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Enrollment not found"));
-            
-        auditService.logActivity(
-            "Enrollment",
-            id,
-            "DELETE",
-            enrollment,
-            null,
-            "system"
-        );
+        if (!enrollmentRepository.existsById(id)) {
+            throw new EntityNotFoundException("Enrollment not found");
+        }
         
         enrollmentRepository.deleteById(id);
     }

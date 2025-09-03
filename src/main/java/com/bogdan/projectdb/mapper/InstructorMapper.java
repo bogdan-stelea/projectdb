@@ -18,10 +18,10 @@ public class InstructorMapper {
         InstructorDto dto = new InstructorDto();
         dto.setFirstName(instructor.getFirstName());
         dto.setLastName(instructor.getLastName());
-        dto.setEmail(instructor.getEmail());
-        dto.setPhoneNumber(instructor.getPhoneNumber());
+        dto.setEmail(instructor.getMaskedEmail());
+        dto.setPhoneNumber(instructor.getMaskedPhoneNumber());
         dto.setDepartment(instructor.getDepartment());
-        dto.setOfficeAddress(instructor.getOfficeAddress());
+        dto.setOfficeAddress(instructor.getMaskedOfficeAddress());
         return dto;
     }
 

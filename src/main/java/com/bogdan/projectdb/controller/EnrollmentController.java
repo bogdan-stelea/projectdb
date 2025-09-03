@@ -1,6 +1,7 @@
 package com.bogdan.projectdb.controller;
 
 import com.bogdan.projectdb.dto.EnrollmentDto;
+import com.bogdan.projectdb.dto.EnrollmentRequestDto;
 import com.bogdan.projectdb.model.Enrollment;
 import com.bogdan.projectdb.service.EnrollmentService;
 import com.bogdan.projectdb.security.SqlSecurityConfig;
@@ -50,13 +51,18 @@ public class EnrollmentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Enrollment> getEnrollment(@PathVariable Integer id) {
-        return ResponseEntity.ok(enrollmentService.findEnrollmentById(id));
+    public ResponseEntity<EnrollmentDto> getEnrollment(@PathVariable Integer id) {
+        Enrollment enrollment = enrollmentService.findEnrollmentById(id);
+        return ResponseEntity.ok(convertToDto(enrollment));
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllEnrollments() {
-        return ResponseEntity.ok(enrollmentService.getAllEnrollments());
+    public ResponseEntity<List<EnrollmentDto>> getAllEnrollments() {
+        List<Enrollment> enrollments = enrollmentService.getAllEnrollments();
+        List<EnrollmentDto> dtos = enrollments.stream()
+            .map(this::convertToDto)
+            .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     @PutMapping("/{enrollmentId}/{grade}/instructor/{instructorId}")
@@ -73,17 +79,18 @@ public class EnrollmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Enrollment> createEnrollment(@Valid @RequestBody Enrollment enrollment) {
-        validateEnrollment(enrollment);
-        return ResponseEntity.ok(enrollmentService.createEnrollment(enrollment));
+    public ResponseEntity<EnrollmentDto> createEnrollment(@Valid @RequestBody EnrollmentRequestDto request) {
+        return ResponseEntity.ok(enrollmentService.enrollStudentInCourse(request.getStudentId(), request.getCourseId()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Enrollment> updateEnrollment(
+    public ResponseEntity<EnrollmentDto> updateEnrollment(
             @PathVariable Integer id,
-            @Valid @RequestBody Enrollment enrollment) {
-        validateEnrollment(enrollment);
-        return ResponseEntity.ok(enrollmentService.updateEnrollment(id, enrollment));
+            @Valid @RequestBody EnrollmentRequestDto request) {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setStatus(request.getStatus());
+        Enrollment updated = enrollmentService.updateEnrollment(id, enrollment);
+        return ResponseEntity.ok(convertToDto(updated));
     }
 
     @DeleteMapping("/{id}")
@@ -92,6 +99,17 @@ public class EnrollmentController {
         return ResponseEntity.noContent().build();
     }
 
+    private EnrollmentDto convertToDto(Enrollment enrollment) {
+        return new EnrollmentDto(
+                enrollment.getStudent() != null ? enrollment.getStudent().getId() : null,
+                enrollment.getCourse() != null ? enrollment.getCourse().getId() : null,
+                enrollment.getEnrollmentDate(),
+                enrollment.getEnrollmentNumber(),
+                enrollment.getStatus(),
+                enrollment.getGrade()
+        );
+    }
+    
     private void validateEnrollment(Enrollment enrollment) {
         if (enrollment.getEnrollmentNumber() != null &&
             !sqlSecurityConfig.isSqlInjectionSafe(enrollment.getEnrollmentNumber())) {

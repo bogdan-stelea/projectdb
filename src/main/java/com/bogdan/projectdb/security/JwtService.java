@@ -1,90 +1,75 @@
 package com.bogdan.projectdb.security;
 
-import com.bogdan.projectdb.audit.AuditService;
-import com.bogdan.projectdb.model.TokenAudit;
-import com.bogdan.projectdb.repository.TokenAuditRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import java.security.Key;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @Service
-@RequiredArgsConstructor
 public class JwtService {
-    private static final String SECRET_KEY = "your_secret_key_here_make_it_at_least_256_bits";
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 hours
 
-    private final TokenAuditRepository tokenAuditRepository;
-    private final AuditService auditService;
-
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    private static final String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
 
-    public String generateToken(String username, String role, String department) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
-        claims.put("department", department);
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
 
-        String token = Jwts.builder()
-                .setClaims(claims)
-                .setSubject(username)
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
+    }
+
+    public String generateToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails
+    ) {
+        return Jwts
+                .builder()
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
-
-        // Create token audit record
-        TokenAudit tokenAudit = new TokenAudit();
-        tokenAudit.setUsername(username);
-        tokenAudit.setToken(token);
-        tokenAudit.setRole(role);
-        tokenAudit.setIssuedAt(LocalDateTime.now());
-        tokenAudit.setExpiresAt(LocalDateTime.now().plusDays(1));
-        tokenAudit.setRevoked(false);
-        
-        TokenAudit savedToken = tokenAuditRepository.save(tokenAudit);
-
-        // Log the token generation in audit logs
-        auditService.logActivity(
-            "Token",
-            savedToken.getId().intValue(),
-            "GENERATE",
-            null,
-            Map.of(
-                "username", username,
-                "role", role,
-                "department", department,
-                "expiresAt", tokenAudit.getExpiresAt()
-            ),
-            username
-        );
-
-        return token;
     }
 
-    public Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(getSignInKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    public boolean isTokenValid(String token) {
-        try {
-            Claims claims = extractAllClaims(token);
-            return !claims.getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
-        }
+    private SecretKey getSignInKey() {
+        byte[] keyBytes = SECRET_KEY.getBytes();
+        return Keys.hmacShaKeyFor(keyBytes);
     }
-} 
+}

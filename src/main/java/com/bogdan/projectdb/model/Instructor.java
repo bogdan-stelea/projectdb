@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.bogdan.projectdb.encryption.StringEncryptionConverter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.bogdan.projectdb.security.DataMaskingContext;
 
 import java.util.HashSet;
@@ -29,19 +30,22 @@ public class Instructor {
     private String lastName;
 
     @Column(nullable = false, unique = true)
+    @Convert(converter = StringEncryptionConverter.class)
     private String email;
 
     @Column(name = "phone_number", nullable = false)
+    @Convert(converter = StringEncryptionConverter.class)
     private String phoneNumber;
 
     @Column(nullable = false)
     private String department;
 
     @Column(name = "office_address")
+    @Convert(converter = StringEncryptionConverter.class)
     private String officeAddress;
 
-    @OneToMany
-    @JoinColumn(name = "instructor_id")
+    @OneToMany(mappedBy = "instructor")
+    @JsonIgnore
     private Set<Course> courses = new HashSet<>();
 
     @JsonProperty("email")

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.bogdan.projectdb.encryption.StringEncryptionConverter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.bogdan.projectdb.security.DataMaskingContext;
 
 import java.time.LocalDate;
@@ -22,7 +23,8 @@ import java.util.Set;
 @Table(name = "students")
 public class Student {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "student_seq")
+    @SequenceGenerator(name = "student_seq", sequenceName = "STUDENT_SEQ", allocationSize = 1)
     private Integer id;
 
     @Column(name = "first_name", nullable = false)
@@ -32,23 +34,23 @@ public class Student {
     private String lastName;
 
     @Column(nullable = false, unique = true)
+    @Convert(converter = StringEncryptionConverter.class)
     private String email;
 
     @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
 
     @Column(name = "phone_number", nullable = false)
+    @Convert(converter = StringEncryptionConverter.class)
     private String phoneNumber;
 
     @Column(nullable = false)
+    @Convert(converter = StringEncryptionConverter.class)
     private String address;
 
-    @JoinColumn(name = "student_id")
-    @OneToMany
-    private List<Enrollment> enrollmentIds = new LinkedList<>();
-
-    @ManyToMany
-    private List<Course> courses = new LinkedList<>();
+    @OneToMany(mappedBy = "student")
+    @JsonIgnore
+    private List<Enrollment> enrollments = new LinkedList<>();
 
     @JsonProperty("email")
     public String getMaskedEmail() {

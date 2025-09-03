@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,23 +36,12 @@ public class Course {
 
     @ManyToOne
     @JoinColumn(name = "instructor_id")
+    @JsonIgnoreProperties({"courses", "email", "phoneNumber", "officeAddress"})
     private Instructor instructor;
 
-    @ManyToMany
-    @JoinTable(
-            name = "course_student",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "enrollment_id")
-    )
-    private Set<Enrollment> enrollmentIds = new HashSet<>();
-
-    @ManyToMany
-    @JoinTable(
-        name = "course_student",
-        joinColumns = @JoinColumn(name = "course_id"),
-        inverseJoinColumns = @JoinColumn(name = "student_id")
-    )
-    private Set<Student> students = new HashSet<>();
+    @OneToMany(mappedBy = "course")
+    @JsonIgnore
+    private Set<Enrollment> enrollments = new HashSet<>();
 
 
 } 
