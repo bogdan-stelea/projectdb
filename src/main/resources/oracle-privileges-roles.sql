@@ -97,41 +97,8 @@ GRANT db_student_role TO db_instructor_role;
 -- Grant instructor role to admin role (hierarchy)  
 GRANT db_instructor_role TO db_admin_role;
 
--- 8. ADVANCED PRIVILEGES - DEPENDENT OBJECTS
+-- 8. ROLE CREATION COMPLETE
 -- ========================================
--- Grant privileges on views that depend on base tables
-GRANT SELECT ON PROJECTDB.secure_student_data TO db_admin_role;
-GRANT SELECT ON PROJECTDB.secure_student_data TO db_instructor_role;
-GRANT SELECT ON PROJECTDB.secure_student_data TO db_student_role;
-GRANT SELECT ON PROJECTDB.secure_student_data TO db_readonly_role;
-
--- Grant execute privileges on security functions
-GRANT EXECUTE ON PROJECTDB.get_current_user_role TO db_admin_role;
-GRANT EXECUTE ON PROJECTDB.get_current_user_role TO db_instructor_role;
-GRANT EXECUTE ON PROJECTDB.can_see_sensitive_data TO db_admin_role;
-GRANT EXECUTE ON PROJECTDB.can_see_sensitive_data TO db_instructor_role;
-
--- 9. VERIFICATION QUERIES
--- ========================================
--- Check all roles created
-SELECT role FROM dba_roles WHERE role LIKE 'DB_%_ROLE' ORDER BY role;
-
--- Check role privileges  
-SELECT grantee, privilege
-FROM dba_sys_privs 
-WHERE grantee LIKE 'DB_%_ROLE'
-ORDER BY grantee, privilege;
-
--- Check object privileges
-SELECT grantee, owner, table_name, privilege
-FROM dba_tab_privs 
-WHERE grantee LIKE 'DB_%_ROLE'
-ORDER BY grantee, table_name, privilege;
-
--- Check role hierarchies
-SELECT granted_role, grantee
-FROM dba_role_privs 
-WHERE granted_role LIKE 'DB_%_ROLE' OR grantee LIKE 'DB_%_ROLE'
-ORDER BY granted_role, grantee;
+-- All roles, privileges, and hierarchies have been configured
 
 COMMIT;
