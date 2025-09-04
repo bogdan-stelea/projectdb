@@ -1,14 +1,6 @@
--- ========================================
--- Create PROJECTDB Schema and User
--- Run this script as SYSTEM user
--- ========================================
+CREATE USER PROJECTDB IDENTIFIED BY "oracle123";
 
--- 1. CREATE PROJECTDB USER/SCHEMA
--- ========================================
-CREATE USER PROJECTDB IDENTIFIED BY "ProjectDB123!";
 
--- 2. GRANT BASIC PRIVILEGES TO PROJECTDB
--- ========================================
 GRANT CREATE SESSION TO PROJECTDB;
 GRANT CREATE TABLE TO PROJECTDB;
 GRANT CREATE SEQUENCE TO PROJECTDB;
@@ -17,8 +9,7 @@ GRANT CREATE PROCEDURE TO PROJECTDB;
 GRANT CREATE ROLE TO PROJECTDB;
 GRANT UNLIMITED TABLESPACE TO PROJECTDB;
 
--- 3. GRANT DBA ROLE FOR FULL PRIVILEGES
--- ========================================
+
 GRANT DBA TO PROJECTDB;
 
 COMMIT;

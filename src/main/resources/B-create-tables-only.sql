@@ -1,20 +1,13 @@
--- ========================================
--- Create Tables Only - PROJECTDB Schema
--- Simple table creation script
--- ========================================
-
--- Make sure we're in PROJECTDB schema
 ALTER SESSION SET CURRENT_SCHEMA = PROJECTDB;
 
--- Verify current schema
 SELECT USER as current_user, SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') as current_schema FROM dual;
 
 -- Create sequences first
-CREATE SEQUENCE student_seq START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE instructor_seq START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE course_seq START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE enrollment_seq START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE user_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE STUDENT_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE INSTRUCTOR_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE COURSE_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE ENROLLMENT_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE USER_SEQ START WITH 1 INCREMENT BY 1;
 
 -- Create tables in correct order (no foreign keys first)
 
@@ -79,38 +72,5 @@ CREATE TABLE simple_audit_log (
     when_done TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     what_changed VARCHAR2(500)
 );
-
-COMMIT;
-
--- Insert some test data
-INSERT INTO instructors (id, first_name, last_name, email, phone_number, department, office_address)
-VALUES (instructor_seq.NEXTVAL, 'Dr. Alice', 'Johnson', 'alice.johnson@university.edu', '555-123-4567', 'Computer Science', 'Room 201');
-
-INSERT INTO instructors (id, first_name, last_name, email, phone_number, department, office_address)
-VALUES (instructor_seq.NEXTVAL, 'Prof. Bob', 'Wilson', 'bob.wilson@university.edu', '555-987-6543', 'Mathematics', 'Room 301');
-
-INSERT INTO students (id, first_name, last_name, email, phone_number, address, date_of_birth)
-VALUES (student_seq.NEXTVAL, 'John', 'Doe', 'john.doe@university.edu', '123-456-7890', '123 Main St', DATE '1995-05-15');
-
-INSERT INTO students (id, first_name, last_name, email, phone_number, address, date_of_birth)
-VALUES (student_seq.NEXTVAL, 'Jane', 'Smith', 'jane.smith@university.edu', '987-654-3210', '456 Oak Ave', DATE '1996-08-22');
-
-INSERT INTO courses (id, course_code, course_name, credits, description, instructor_id)
-VALUES (course_seq.NEXTVAL, 'CS101', 'Programming', 3, 'Basic programming', 1);
-
-INSERT INTO courses (id, course_code, course_name, credits, description, instructor_id)
-VALUES (course_seq.NEXTVAL, 'MATH201', 'Calculus', 4, 'Calculus basics', 2);
-
-INSERT INTO enrollments (id, student_id, course_id, enrollment_number, status)
-VALUES (enrollment_seq.NEXTVAL, 1, 1, 'ENR-2024-001', 'ENROLLED');
-
-INSERT INTO enrollments (id, student_id, course_id, enrollment_number, status)
-VALUES (enrollment_seq.NEXTVAL, 2, 1, 'ENR-2024-002', 'ENROLLED');
-
-INSERT INTO users (id, username, password, role)
-VALUES (user_seq.NEXTVAL, 'admin@university.edu', 'admin123', 'ADMIN');
-
-INSERT INTO users (id, username, password, role)
-VALUES (user_seq.NEXTVAL, 'john.doe@university.edu', 'student123', 'STUDENT');
 
 COMMIT;

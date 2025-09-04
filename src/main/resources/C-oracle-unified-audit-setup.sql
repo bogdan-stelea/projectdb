@@ -1,11 +1,3 @@
--- ========================================
--- Oracle Unified Auditing Setup
--- Modern auditing for Oracle 23ai
--- ========================================
-
--- 1. CREATE AUDIT POLICIES
--- ========================================
-
 -- Policy for session tracking
 CREATE AUDIT POLICY session_audit_policy
 ACTIONS LOGON, LOGOFF;
@@ -25,19 +17,13 @@ CREATE AUDIT POLICY enrollments_audit_policy
 ACTIONS SELECT, INSERT, UPDATE, DELETE
 ON PROJECTDB.ENROLLMENTS;
 
--- 2. ENABLE AUDIT POLICIES
--- ========================================
 
 -- Enable session tracking
 AUDIT POLICY session_audit_policy;
 
--- Enable table operations tracking
 AUDIT POLICY students_audit_policy;
 AUDIT POLICY instructors_audit_policy;
 AUDIT POLICY enrollments_audit_policy;
-
--- 3. VIEW UNIFIED AUDIT TRAIL
--- ========================================
 
 -- Check current audit policies
 SELECT policy_name
@@ -65,6 +51,3 @@ AND event_timestamp > SYSTIMESTAMP - INTERVAL '1' DAY
 ORDER BY event_timestamp DESC;
 
 COMMIT;
-
--- Test the auditing by running some queries
-SELECT 'Audit setup completed - test by running some SELECT statements on tables' as status FROM dual;
